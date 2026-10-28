@@ -1,6 +1,7 @@
 using Etrx.API.Extensions;
 using Etrx.API.Middlewares;
 using Serilog;
+using Etrx.API.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -8,6 +9,7 @@ var configuration = builder.Configuration;
 builder.Host.AddSerilog();
 
 builder.Services.ConfigureControllers();
+builder.Services.AddEtrxAuthentication(configuration, builder.Environment.IsDevelopment());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -31,14 +33,18 @@ if (app.Environment.IsDevelopment())
 
 await app.ApplyMigrationsAsync();
 
-app.UseAuthorization();
-app.MapControllers();
-
-app.UseCors(options =>
+// Custom header + explicit CORS allowlist prevent cross-origin browser mutations.
+app.UseCors();
+app.Use(async (context, next) =>
 {
-    options.WithHeaders().AllowAnyHeader();
-    options.WithOrigins().AllowAnyOrigin();
-    options.WithMethods().AllowAnyMethod();
+    if (context.Request.Path.StartsWithSegments("/api") &&
+        !HttpMethods.IsGet(context.Request.Method) && !HttpMethods.IsHead(context.Request.Method) &&
+        !HttpMethods.IsOptions(context.Request.Method) && context.Request.Headers["X-ETRX-Request"] != "1")
+    { context.Response.StatusCode = 400; return; }
+    await next(context);
 });
-
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseRateLimiter();
+app.MapControllers();
 app.Run();

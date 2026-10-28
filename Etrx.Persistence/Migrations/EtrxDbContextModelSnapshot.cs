@@ -23,6 +23,20 @@ namespace Etrx.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Etrx.Domain.Models.UserCredential", b =>
+            {
+                b.Property<Guid>("UserId").HasColumnType("uuid").HasColumnName("user_id");
+                b.Property<string>("PasswordHash").IsRequired().HasColumnType("text").HasColumnName("password_hash");
+                b.Property<string>("SecurityStamp").IsRequired().HasColumnType("text").HasColumnName("security_stamp");
+                b.Property<bool>("AdminActivated").HasColumnType("boolean").HasColumnName("admin_activated");
+                b.Property<int>("FailedAttempts").HasColumnType("integer").HasColumnName("failed_attempts");
+                b.Property<DateTimeOffset?>("LockedUntil").HasColumnType("timestamp with time zone").HasColumnName("locked_until");
+                b.HasKey("UserId").HasName("pk_user_credentials");
+                b.ToTable("user_credentials");
+                b.HasOne("Etrx.Domain.Models.User", null).WithOne().HasForeignKey("Etrx.Domain.Models.UserCredential", "UserId")
+                    .OnDelete(DeleteBehavior.Cascade).IsRequired().HasConstraintName("fk_user_credentials_users_user_id");
+            });
+
             modelBuilder.Entity("Etrx.Domain.Models.Contest", b =>
                 {
                     b.Property<Guid>("Id")

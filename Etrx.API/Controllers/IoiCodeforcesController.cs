@@ -1,9 +1,11 @@
-﻿using Etrx.Application.Interfaces;
+using Etrx.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Etrx.API.Controllers;
 
 [ApiController]
+[Authorize(Policy = "Admin")]
 [Route("api/ioiCodeforces")]
 public class IoiCodeforcesController : ControllerBase
 {

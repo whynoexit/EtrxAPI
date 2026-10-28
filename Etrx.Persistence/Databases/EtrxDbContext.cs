@@ -1,4 +1,4 @@
-﻿using Etrx.Domain.Models;
+using Etrx.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
@@ -19,6 +19,8 @@ public class EtrxDbContext : DbContext
     public DbSet<RanklistRow> RanklistRows { get; set; }
     public DbSet<ProblemResult> ProblemResults { get; set; }
     public DbSet<Tag> Tags { get; set; }
+
+    public DbSet<UserCredential> UserCredentials { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
