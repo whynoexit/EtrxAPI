@@ -11,6 +11,8 @@ public class GetSortProblemRequestDtoValidator : AbstractValidator<GetSortProble
 
     public GetSortProblemRequestDtoValidator()
     {
+        RuleForEach(x => x.Statuses).Must(ProblemStatuses.Filters.Contains)
+            .WithMessage("Status must be solved, failed or deferred");
         var allowedSortFields = SortingFieldsProvider.GetSortFields<ProblemResponseDto>();
 
         RuleFor(x => x.Pagination.Page)

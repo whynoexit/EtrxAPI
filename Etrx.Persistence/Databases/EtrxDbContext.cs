@@ -21,6 +21,9 @@ public class EtrxDbContext : DbContext
     public DbSet<Tag> Tags { get; set; }
 
     public DbSet<UserCredential> UserCredentials { get; set; }
+    public DbSet<UserProblemProgress> UserProblemProgress { get; set; }
+    public DbSet<UserProblemSync> UserProblemSync { get; set; }
+    public DbSet<UserProblemPreferences> UserProblemPreferences { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Etrx.Application.Dtos.Common;
+using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Problems;
 using Etrx.Application.Queries.Common;
 using Etrx.Application.Repositories;
@@ -9,6 +10,7 @@ using Etrx.Domain.Enums;
 using Etrx.Domain.Expressions;
 using Etrx.Domain.Models;
 using Etrx.Persistence.Databases;
+using Etrx.Persistence.Queries;
 using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
@@ -67,11 +69,12 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
     public async Task<PagedResultDto<TResult>> GetPagedAsync<TResult>(
         BaseSpecification<Problem> spec,
         PaginationQueryParameters pagination,
-        string lang)
+        string lang, Guid? userId = null, string[]? statuses = null, bool hideSolved = false)
     {
         var query = _dbSet.AsNoTracking().AsExpandable();
 
         query = ApplySpecification(spec, query);
+        query = ApplyProgressFilter(query, userId, statuses, hideSolved);
 
         var projectedQuery = query.ProjectTo<TResult>(_mapper.ConfigurationProvider, new { lang });
 
@@ -126,10 +129,27 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
     {
         var spec = new ProblemsSpecification(dto);
 
-        return _context.Problems
+        var query = _context.Problems
             .AsNoTracking()
             .AsExpandable()
             .Where(spec.FilterCondition!);
+        return ApplyProgressFilter(query, dto.CurrentUserId, dto.Statuses, dto.HideSolved);
+    }
+
+    private IQueryable<Problem> ApplyProgressFilter(IQueryable<Problem> query, Guid? userId, string[]? statuses, bool hideSolved)
+    {
+        if ((statuses == null || statuses.Length == 0) && !hideSolved) return query;
+        if (userId == null) return query.Where(p => false);
+        var progress = ProblemProgressQuery.ForUser(_context, userId.Value);
+        // Filter before Count/Skip/Take so every page and the page count are correct.
+        // A task with no submissions has no progress row and must remain visible.
+        if (hideSolved)
+            query = query.Where(p => !progress.Any(s => s.ContestId == p.ContestId && s.Index == p.Index
+                && s.Status == ProblemStatuses.Solved));
+        if (statuses is { Length: > 0 })
+            query = query.Where(p => progress.Any(s => s.ContestId == p.ContestId && s.Index == p.Index
+                && statuses.Contains(s.Status)));
+        return query;
     }
 
     public async Task<ProblemFiltersDto> GetFiltersAsync(IQueryable<Problem> query)

@@ -102,9 +102,10 @@ public class AuthController(EtrxDbContext db, IPasswordHasher<UserCredential> ha
     [HttpPost("logout"), AllowAnonymous]
     public async Task<IActionResult> Logout()
     {
+        var newStamp = Guid.NewGuid().ToString("N");
         if (Guid.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var id))
             await db.UserCredentials.Where(c => c.UserId == id).ExecuteUpdateAsync(set => set
-                .SetProperty(c => c.SecurityStamp, Guid.NewGuid().ToString("N")));
+                .SetProperty(c => c.SecurityStamp, newStamp));
         await HttpContext.SignOutAsync(AuthSecurity.Scheme);
         return NoContent();
     }

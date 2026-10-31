@@ -9,6 +9,7 @@ public class SubmissionConfiguration : IEntityTypeConfiguration<Submission>
     public void Configure(EntityTypeBuilder<Submission> builder)
     {
         builder.HasKey(s => s.Id);
+        builder.HasIndex(s => new { s.UserId, s.ContestId, s.Index, s.Verdict });
 
         builder
             .HasOne(s => s.User)

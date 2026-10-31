@@ -4,6 +4,8 @@ namespace Etrx.Application.Dtos.Problems;
 
 public class ProblemResponseDto
 {
+    public string Status { get; set; } = "none";
+    public bool IsDeferred { get; set; }
     public int ContestId { get; set; }
     public string Index { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;

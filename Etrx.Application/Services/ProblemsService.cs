@@ -48,7 +48,7 @@ public class ProblemsService : IProblemsService
         var pagedResult = await _unitOfWork.Problems.GetPagedAsync<ProblemResponseDto>(
             spec,
             new PaginationQueryParameters(dto.Pagination.Page, dto.Pagination.PageSize),
-            dto.Lang);
+            dto.Lang, dto.CurrentUserId, dto.Statuses, dto.HideSolved);
 
         return new ProblemWithPropsResponseDto
         (

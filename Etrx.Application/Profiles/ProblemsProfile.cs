@@ -14,6 +14,8 @@ public class ProblemsProfile : Profile
         string lang = Languages.Ru;
 
         CreateMap<Problem, ProblemResponseDto>()
+            .ForMember(dest => dest.Status, opt => opt.Ignore())
+            .ForMember(dest => dest.IsDeferred, opt => opt.Ignore())
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src =>
                 src.ProblemTranslations
                    .Where(pt => pt.LanguageCode == lang)
